@@ -39,6 +39,7 @@
 
 [FixedPcd]
   gBcm283xTokenSpaceGuid.PcdBcm283xRegistersAddress
+  gBcm283xTokenSpaceGuid.PcdBcmRngUseFifo
 
 [Depex]
   TRUE

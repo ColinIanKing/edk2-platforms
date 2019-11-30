@@ -113,6 +113,7 @@ Bcm2836RngGetInfo (
                                       zero.
 
 **/
+
 STATIC
 EFI_STATUS
 EFIAPI
@@ -168,10 +169,85 @@ Bcm2836RngGetRNG (
   return EFI_SUCCESS;
 }
 
+
+
+STATIC
+EFI_STATUS
+EFIAPI
+Bcm2711RngGetRNG (
+  IN EFI_RNG_PROTOCOL            *This,
+  IN EFI_RNG_ALGORITHM           *RNGAlgorithm, OPTIONAL
+  IN UINTN                       RNGValueLength,
+  OUT UINT8                      *RNGValue
+  )
+{
+  UINT32 Val;
+  UINT32 Num;
+  UINT32 Retries = RNG_MAX_RETRIES;
+
+  if (This == NULL || RNGValueLength == 0 || RNGValue == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  //
+  // We only support the raw algorithm, so reject requests for anything else
+  //
+  if (RNGAlgorithm != NULL &&  !CompareGuid (RNGAlgorithm, &gEfiRngAlgorithmRaw)) {
+    return EFI_UNSUPPORTED;
+  }
+
+  // Before we start reading data from the FIFO lets make sure the rng has settled.
+  while (Retries) {
+    Val = MmioRead32 (RNG_BIT_COUNT);
+    if (Val > 16)
+      break;
+    gBS->Stall (10);
+  }
+  DEBUG ((DEBUG_ERROR, "Rnd Settle Count %d\n", Val));
+
+  if (Val <= 16)
+    return EFI_DEVICE_ERROR;
+
+  while (RNGValueLength > 0) {
+    Retries = RNG_MAX_RETRIES;
+    do {
+      Num = MmioRead32 (RNG_FIFO_COUNT) & RNG_FIFO_COUNT_RNG_FIFO_COUNT_MASK;
+      MemoryFence ();
+    } while (!Num && Retries-- > 0);
+
+    if (!Num) {
+      DEBUG ((DEBUG_ERROR, "Rnd DEVICE ERROR bit=%X FIFO=%X\n",MmioRead32 (RNG_BIT_CNT_THRESH), MmioRead32 (RNG_FIFO_COUNT)));
+      return EFI_DEVICE_ERROR;
+    }
+
+    while (RNGValueLength >= sizeof (UINT32) && Num > 0) {
+      WriteUnaligned32 ((VOID *)RNGValue, MmioRead32 (RNG_FIFO_DATA));
+      RNGValue += sizeof (UINT32);
+      RNGValueLength -= sizeof (UINT32);
+      Num--;
+    }
+
+    if (RNGValueLength > 0 && Num > 0) {
+      Val = MmioRead32 (RNG_FIFO_DATA);
+      while (RNGValueLength--) {
+        *RNGValue++ = (UINT8)Val;
+        Val >>= 8;
+      }
+    }
+  }
+  return EFI_SUCCESS;
+}
+
 STATIC EFI_RNG_PROTOCOL mBcm2836RngProtocol = {
   Bcm2836RngGetInfo,
   Bcm2836RngGetRNG
 };
+
+STATIC EFI_RNG_PROTOCOL mBcm2711RngProtocol = {
+  Bcm2836RngGetInfo,
+  Bcm2711RngGetRNG
+};
+
 
 //
 // Entry point of this driver.
@@ -183,15 +259,40 @@ Bcm2836RngEntryPoint (
   IN EFI_SYSTEM_TABLE *SystemTable
   )
 {
+  EFI_RNG_PROTOCOL *Protocol;
   EFI_STATUS      Status;
 
+  if (FixedPcdGet32 (PcdBcmRngUseFifo)) {
+      UINT8 buf[10];
+      EFI_RNG_PROTOCOL   Bogus;
+      EFI_RNG_ALGORITHM  RNGAlgorithm;
+      int x;
+
+      MmioWrite32 (RNG_BIT_CNT_THRESH, RNG_WARMUP_COUNT);
+      MmioWrite32 (RNG_CTRL, (3 << RNG_CTRL_DIV_CTRL_SHIFT) | RNG_CTRL_ENABLE);
+
+      if (Bcm2711RngGetRNG (&Bogus, &RNGAlgorithm, 8, buf)== EFI_SUCCESS)
+      {
+          for (x=0; x<8;x++)
+          {
+              DEBUG ((DEBUG_ERROR, "Rnd data %X\n", buf[x]));
+          }
+      }
+      else
+      {
+          DEBUG ((DEBUG_ERROR, "Unable to read rnd data\n"));
+      }
+      Protocol = &mBcm2711RngProtocol;
+  } else  {
+    MmioWrite32 (RNG_STATUS, RNG_WARMUP_COUNT);
+    MmioWrite32 (RNG_CTRL, RNG_CTRL_ENABLE);
+    Protocol = &mBcm2836RngProtocol;
+  }
+
   Status = gBS->InstallMultipleProtocolInterfaces (&ImageHandle,
-                  &gEfiRngProtocolGuid, &mBcm2836RngProtocol,
+                  &gEfiRngProtocolGuid, Protocol,
                   NULL);
   ASSERT_EFI_ERROR (Status);
 
-  MmioWrite32 (RNG_STATUS, RNG_WARMUP_COUNT);
-  MmioWrite32 (RNG_CTRL, RNG_CTRL_ENABLE);
-
-  return EFI_SUCCESS;
+  return Status;
 }

@@ -622,7 +622,10 @@
   #
   # RNG
   #
-  Silicon/Broadcom/Bcm283x/Drivers/RngDxe/RngDxe.inf
+  Silicon/Broadcom/Bcm283x/Drivers/RngDxe/RngDxe.inf {
+    <PcdsFixedAtBuild>
+      gBcm283xTokenSpaceGuid.PcdBcmRngUseFifo|1
+  }
 
   #
   # PCI Support

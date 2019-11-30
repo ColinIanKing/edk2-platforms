@@ -21,3 +21,5 @@
 
 [PcdsFixedAtBuild.common]
   gBcm283xTokenSpaceGuid.PcdBcm283xRegistersAddress|0x0|UINT32|0x00000001
+  gBcm283xTokenSpaceGuid.PcdBcmRngUseFifo|0x0|UINT32|0x00000002
+

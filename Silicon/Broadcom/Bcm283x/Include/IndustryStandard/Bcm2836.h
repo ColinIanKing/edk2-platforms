@@ -53,10 +53,17 @@
 /* random number generator */
 #define RNG_BASE_ADDRESS   (BCM2836_SOC_REGISTERS + 0x00104000)
 
-#define RNG_CTRL           (RNG_BASE_ADDRESS + 0x0)
-#define RNG_STATUS         (RNG_BASE_ADDRESS + 0x4)
-#define RNG_DATA           (RNG_BASE_ADDRESS + 0x8)
+#define RNG_CTRL           (RNG_BASE_ADDRESS + 0x00)
+#define RNG_STATUS         (RNG_BASE_ADDRESS + 0x04)
+#define RNG_DATA           (RNG_BASE_ADDRESS + 0x08)
+#define RNG_BIT_COUNT      (RNG_BASE_ADDRESS + 0x0c)
+#define RNG_BIT_CNT_THRESH (RNG_BASE_ADDRESS + 0x10)
+#define RNG_FIFO_DATA      (RNG_BASE_ADDRESS + 0x20)
+#define RNG_FIFO_COUNT     (RNG_BASE_ADDRESS + 0x24)
 
-#define RNG_CTRL_ENABLE    0x1
+
+#define RNG_CTRL_ENABLE                     0x1
+#define RNG_CTRL_DIV_CTRL_SHIFT             13
+#define RNG_FIFO_COUNT_RNG_FIFO_COUNT_MASK  0x000000FF
 
 #endif /*__BCM2836_H__ */
