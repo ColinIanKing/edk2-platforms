@@ -27,6 +27,8 @@
 #define BCM_ALT4 0x3
 #define BCM_ALT5 0x2
 
+#define GPIO_PIN 19
+
 //
 // The ASL compiler does not support argument arithmetic in functions
 // like QWordMemory (). So we need to instantiate dummy qword regions
@@ -224,6 +226,90 @@ DefinitionBlock ("Dsdt.aml", "DSDT", 5, "RPIFDN", "RPI", 2)
     }
 
 #if (RPI_MODEL == 4)
+    // Lets start defining a thermal zone for the rpi
+    // The idea here is we have the SOC temp (directly
+    // or via the mailbox) as we flesh this out
+    // move from basically setting some policies
+    // and letting the OS poll the temp, to
+    // allowing a GPIO to start/stop a fan,
+    // or throttle the core via a mailbox.
+    //
+    // Define the thermal zone in _SB rather than _TZ
+    // because we don't expect to need the backwards
+    // compat on arm devices.
+    //
+    // We should also look at doing S4 (hibernate)
+    // since we are now specifying a threshold for it
+    Device(EC0)
+    {
+      Name(_HID, EISAID("PNP0C09"))
+      Name (_CCA, 0x0)            // _CCA: make sure access are treated as uncached
+      // Name(_GPE, 0)  //No GPE, lets use poll mode
+
+      // Describe a fan
+      PowerResource(PFAN, 0, 0) {
+        OperationRegion (GPIO, SystemMemory, GPIO_BASE_ADDRESS, 0x1000)
+        Field (GPIO, DWordAcc, NoLock, Preserve) {
+          Offset(0x1C),
+          GPS0, 32,
+          GPS1, 32,
+          RES1, 32,
+          GPC0, 32,
+          GPC1, 32,
+          RES2, 32,
+          GPL1, 32,
+          GPL2, 32
+        }
+        // We are hitting a GPIO pin to on/off the fan
+        // this assumes that uefi has programmed the
+        // direction as OUT
+        // Funny things will probably happen if
+        // a pin controller starts up in linux/etc and
+        // starts messing with it
+        Method (_STA) {
+          if ( GPL1 & (1 << GPIO_PIN) ) {
+            Return ( 1 )               // present and enabled
+          }
+          Return ( 0 )
+        }
+        Method (_ON)  {                //if user defined a fan enable it
+          Store((1 << GPIO_PIN), GPS0)
+        }
+        Method (_OFF) {                //disable it
+          Store((1 << GPIO_PIN), GPC0)
+        }
+      }
+      Device(FAN) {
+        // Note, not currently an ACPIv4 fan
+        // the latter adds speed control/detection
+        // but in the case of linux needs FIF, FPS, FSL, and FST
+        Name(_HID, EISAID("PNP0C0B"))
+        Name(_PR0, Package() {PFAN})
+      }
+
+      // all temps in are tenths of K (aka 2732 is the min temps in linux (aka 0C))
+      ThermalZone(TZ0) {
+        Method(_TMP, 0, Serialized) {  // return current temp 0x7d5d2200 (thats the DT, need fd5d)
+          OperationRegion (TEMS, SystemMemory, 0xfd5d2200, 0x8)
+          Field (TEMS, DWordAcc, NoLock, Preserve) {
+            TMPS, 32
+          }
+          return (((419949 - ((TMPS & 0x3ff) * 487)) / 100) + 2732);
+        }
+        Method(_SCP, 3) { }              // receive cooling policy from OS
+
+        Method(_CRT) { return(3732) }    // (100K) Critical temp point (read from mailbox, causes immediate shutdown)
+        Method(_HOT) { return(3632) }    // (90K) HOT state where OS should be trying to hibernate to protect the system (usually caused by some kind of active cooling failure (think AC failure, or just being in a desert) where PSV can't keep it cool)
+        Method(_PSV) { return(3532) }    // (80K) (Pasive cooling (cpu throttling) trip point
+                                         // Add additional _ACX's here if there are multiple fans/etc (ex: chassis vs cpu)
+        Method(_AC0) { return(3332) }    // (60K) (active cooling trip point, if this is lower than PSV then we prefer active cooling, if the user sets up a fan then lets assure this is lower
+
+        Name(_TZP, 10)                   //The OSPM must poll this device every 1 seconds
+        Name(_AL0, Package(){\_SB.EC0.FAN}) // the fan used for AC0 above
+        Name(_PSL, Package(){\_SB_.CPU0, \_SB_.CPU1, \_SB_.CPU2, \_SB_.CPU3})
+      }
+    }
+
     Device (ETH0)
     {
       Name (_HID, "BCM6E4E")

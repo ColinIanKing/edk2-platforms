@@ -523,6 +523,7 @@ ApplyVariables (
     GpioPinFuncSet (23, GPIO_FSEL_INPUT);
     GpioPinFuncSet (24, GPIO_FSEL_INPUT);
   }
+  GpioPinFuncSet(19, GPIO_FSEL_OUTPUT);
 }
 
 
