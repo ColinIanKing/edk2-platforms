@@ -63,9 +63,7 @@ DefinitionBlock ("Dsdt.aml", "DSDT", 5, "RPIFDN", "RPI", 2)
   Scope (\_SB_)
   {
     include ("Pep.asl")
-#if (RPI_MODEL == 4)
-    include ("Xhci.asl")
-#endif
+
     Method (_OSC, 4, Serialized)  { // _OSC: Operating System Capabilities
       CreateDWordField (Arg3, 0x00, STS0)
       CreateDWordField (Arg3, 0x04, CAP0)
