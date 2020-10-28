@@ -820,6 +820,12 @@ STATIC CONST NAMESPACE_TABLES SdtTables[] = {
     PcdToken(PcdSdIsArasan),
     SsdtEmmcNameOpReplace
   },
+  {
+    SIGNATURE_64 ('R', 'P', 'I', '4', 'X', 'H', 'C', 'I'),
+    PcdToken(PcdXhci),
+    0,
+    NULL
+  },
   { // DSDT
     SIGNATURE_64 ('R', 'P', 'I', 0, 0, 0, 0, 0),
     0,
