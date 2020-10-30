@@ -66,7 +66,7 @@ DefinitionBlock ("Dsdt.aml", "DSDT", 5, "RPIFDN", "RPI", 2)
 #if (RPI_MODEL == 4)
     include ("Xhci.asl")
 #endif
-     Method (_OSC, 4, Serialized)  { // _OSC: Operating System Capabilities
+    Method (_OSC, 4, Serialized)  { // _OSC: Operating System Capabilities
       CreateDWordField (Arg3, 0x00, STS0)
       CreateDWordField (Arg3, 0x04, CAP0)
       STS0 &= ~0x1F
@@ -347,7 +347,7 @@ DefinitionBlock ("Dsdt.aml", "DSDT", 5, "RPIFDN", "RPI", 2)
     //
     // funny enough, we could use this method for _PCT and simplify
     // this even further (assuming OS's can deal with 'SystemMemory'
-    // PERF_CTRL). 
+    // PERF_CTRL).
     Name(CPCX, Package()
     {
       21, // Number of entries
@@ -366,14 +366,16 @@ DefinitionBlock ("Dsdt.aml", "DSDT", 5, "RPIFDN", "RPI", 2)
       ResourceTemplate() {Register(SystemMemory,  0, 0,          0, 0)}, // Perf ReductionToleranceRegister (optional)
       ResourceTemplate() {Register(SystemMemory,  0, 0,          0, 0)}, // Time window  register (optional)
       ResourceTemplate() {Register(SystemMemory,  0, 0,          0, 0)}, // Counter wrap around time (optional)
-      ResourceTemplate() {Register(SystemMemory, 32, 0, 0xFE003004, 3)}, // Reference counter register (PPERF)
-      ResourceTemplate() {Register(SystemMemory, 32, 0, 0xFE003008, 3)}, // Delivered counter register (APERF)
+      ResourceTemplate() {Register(PCC,          32, 0,        0x0, 0)}, // Reference counter register (PPERF)
+      ResourceTemplate() {Register(PCC,          32, 0,        0x4, 0)}, // Delivered counter register (APERF)
+      //ResourceTemplate() {Register(SystemMemory, 32, 0, 0xFE003004, 3)}, // Reference counter register (PPERF)
+      //ResourceTemplate() {Register(SystemMemory, 32, 0, 0xFE003008, 3)}, // Delivered counter register (APERF)
       ResourceTemplate() {Register(SystemMemory, 32, 0, 0xFF800080, 3)}, // Performance limited register
       ResourceTemplate() {Register(SystemMemory,  0, 0,          0, 0)}, // Enable register (optional)
       0, // Autonomous  selection enable register (optional)
       ResourceTemplate() {Register(SystemMemory,  0, 0, 0, 0)}, // Autonomous activity window register (optional)
       ResourceTemplate() {Register(SystemMemory,  0, 0, 0, 0)}, // Autonomous energy performance preference register (optional)
-      0,    // Reference performance 
+      0,    // Reference performance
       600,  // lowest frequency
       1500, // nominal frequency
     })
