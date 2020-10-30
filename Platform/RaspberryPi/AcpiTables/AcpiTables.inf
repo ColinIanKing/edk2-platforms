@@ -34,6 +34,7 @@
   Csrt.aslc
   Spcr.aslc
   Pptt.aslc
+  Pcct.aslc
   SsdtThermal.asl
 
 [Packages]
