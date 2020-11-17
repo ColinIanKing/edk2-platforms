@@ -94,6 +94,9 @@
   gRaspberryPiTokenSpaceGuid.PcdFanOnGpio
   gRaspberryPiTokenSpaceGuid.PcdFanTemp
   gRaspberryPiTokenSpaceGuid.PcdBootPolicy
+  gRaspberryPiTokenSpaceGuid.PcdXhciPci
+  gRaspberryPiTokenSpaceGuid.PcdXhci
+  gRaspberryPiTokenSpaceGuid.PcdPci
 
 [Depex]
   gPcdProtocolGuid AND gRaspberryPiFirmwareProtocolGuid
