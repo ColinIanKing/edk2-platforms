@@ -525,6 +525,15 @@
 
   gRaspberryPiTokenSpaceGuid.PcdPlatformResetDelay|L"ResetDelay"|gRaspberryPiTokenSpaceGuid|0x0|0
 
+  # Select XHCI/PCIe mode (not valid on rpi3)
+  #
+  # 0  - DISABLED
+  #
+  gRaspberryPiTokenSpaceGuid.PcdXhciPci|L"XhciPci"|gConfigDxeFormSetGuid|0x0|0
+  # SSDT selectors
+  gRaspberryPiTokenSpaceGuid.PcdXhci|L"Xhci"|gConfigDxeFormSetGuid|0x0|0
+  gRaspberryPiTokenSpaceGuid.PcdPci|L"Pci"|gConfigDxeFormSetGuid|0x0|0
+
   #
   # Common UEFI ones.
   #
