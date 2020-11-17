@@ -72,3 +72,7 @@
   gRaspberryPiTokenSpaceGuid.PcdPlatformResetDelay|0|UINT32|0x0000001E
   gRaspberryPiTokenSpaceGuid.PcdMmcEnableDma|0|UINT32|0x0000001F
   gRaspberryPiTokenSpaceGuid.PcdBootPolicy|0|UINT32|0x00000020
+  gRaspberryPiTokenSpaceGuid.PcdXhci|0|UINT32|0x00000021
+  gRaspberryPiTokenSpaceGuid.PcdPci|0|UINT32|0x00000022
+  gRaspberryPiTokenSpaceGuid.PcdXhciPci|0|UINT32|0x00000023
+
