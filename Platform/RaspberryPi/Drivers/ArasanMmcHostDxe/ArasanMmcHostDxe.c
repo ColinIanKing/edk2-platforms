@@ -237,6 +237,8 @@ SoftReset (
 
 /**
    Calculate the clock divisor
+   this gets the right answer, but isn't complete
+   Verify with DividedClockModeBits()
 **/
 EFI_STATUS
 CalculateClockFrequencyDivisor (
@@ -260,6 +262,9 @@ CalculateClockFrequencyDivisor (
   }
 
   ASSERT (BaseFrequency != 0);
+
+  // todo read caps first...
+
   Divisor = BaseFrequency / TargetFrequency;
 
   // Arasan controller is based on 3.0 spec so the div is multiple of 2
@@ -371,6 +376,7 @@ MMCSendCommand (
     CmdSendOKMask |= DATI_MASK;
   }
 
+  // wait the below just checks the CMD inhibit for 0
   if (PollRegisterWithMask (MMCHS_PRES_STATE,
     CmdSendOKMask, 0) == EFI_TIMEOUT) {
     DEBUG ((DEBUG_ERROR, "%a(%u): not ready for MMC_CMD%u PresState 0x%x MmcStatus 0x%x\n",
