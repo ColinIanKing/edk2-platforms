@@ -552,6 +552,27 @@ ApplyVariables (
       GpioPinFuncSet (37, GPIO_FSEL_ALT3);
       GpioPinFuncSet (38, GPIO_FSEL_ALT3);
       GpioPinFuncSet (39, GPIO_FSEL_ALT3);
+
+      // power everything by default
+
+      Status = mFwProtocol->SetPowerState (0, 1, 1); //Sd?
+      Status = mFwProtocol->SetGpioConfig (4, RPI_EXP_GPIO_DIR_OUT, 1); //3.3v
+//    Status = mFwProtocol->SetGpioConfig (6, RPI_EXP_GPIO_DIR_OUT, 1); //sd on
+      Status = mFwProtocol->SetClockState (RPI_MBOX_CLOCK_RATE_EMMC2, 1);
+      Status = mFwProtocol->SetClockState (RPI_MBOX_CLOCK_RATE_EMMC, 1);
+
+      // BT on alt3
+      //GpioPinFuncSet (30, GPIO_FSEL_ALT3);
+      //GpioPinFuncSet (31, GPIO_FSEL_ALT3);
+      //GpioPinFuncSet (32, GPIO_FSEL_ALT3);
+      //GpioPinFuncSet (33, GPIO_FSEL_ALT3);
+
+      GpioPinFuncSet (48, GPIO_FSEL_ALT3);
+      GpioPinFuncSet (49, GPIO_FSEL_ALT3);
+      GpioPinFuncSet (50, GPIO_FSEL_ALT3);
+      GpioPinFuncSet (51, GPIO_FSEL_ALT3);
+      GpioPinFuncSet (52, GPIO_FSEL_ALT3);
+      GpioPinFuncSet (53, GPIO_FSEL_ALT3);
     }
   } else {
     DEBUG ((DEBUG_ERROR, "Model Family %d not supported...\n", mModelFamily));
