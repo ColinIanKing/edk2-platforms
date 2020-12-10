@@ -202,6 +202,7 @@ DefinitionBlock ("Dsdt.aml", "DSDT", 5, "RPIFDN", "RPI", 2)
           QWORDMEMORYBUF(23)
           QWORDMEMORYBUF(24)
           QWORDMEMORYBUF(25)
+          QWORDMEMORYBUF(26)
         })
 
         // USB
@@ -248,6 +249,7 @@ DefinitionBlock ("Dsdt.aml", "DSDT", 5, "RPIFDN", "RPI", 2)
         // SDC
         QWORDMEMORYSET(24, MMCHS1_OFFSET, MMCHS1_LENGTH)
         QWORDMEMORYSET(25, SDHOST_OFFSET, SDHOST_LENGTH)
+        QWORDMEMORYSET(26, MMCHS2_OFFSET, MMCHS2_LENGTH)
 
         Return (RBUF)
       }

@@ -19,11 +19,11 @@
 // Note: UEFI can use either SDHost or Arasan. We expose both to the OS.
 //
 
-// ArasanSD 3.0 SD Host Controller.
+// ArasanSD 3.0 SD Host Controller. (brcm,bcm2835-sdhci)
 Device (SDC1)
 {
   Name (_HID, "BCM2847")
-  Name (_CID, "ARASAN")
+  Name (_CID, "PNP0D40")
   Name (_UID, 0x0)
   Name (_CCA, 0x0)
   Name (_S1D, 0x1)
@@ -37,13 +37,25 @@ Device (SDC1)
   Name (RBUF, ResourceTemplate ()
   {
     MEMORY32FIXED (ReadWrite, 0, MMCHS1_LENGTH, RMEM)
-    Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive) { BCM2836_MMCHS1_INTERRUPT }
+    Interrupt (ResourceConsumer, Level, ActiveHigh, Shared) { BCM2836_MMCHS1_INTERRUPT }
   })
   Method (_CRS, 0x0, Serialized)
   {
     MEMORY32SETBASE (RBUF, RMEM, RBAS, MMCHS1_OFFSET)
     Return (^RBUF)
   }
+
+  // The standard CAPs registers on this controller
+  // appear to be 0, lets set some minimal defaults
+  // Since this cap doesn't indicate DMA capability
+  // we don't need a _DMA()
+  Name (_DSD, Package () {
+    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+    Package () {
+      Package () { "sdhci-caps", 0x0100fa81 },
+    }
+  })
+
 
   //
   // A child device that represents the
@@ -61,6 +73,78 @@ Device (SDC1)
     }
   }
 }
+
+// ArasanSD 3.0 SD Host Controller. (brcm,bcm2711-emmc2)
+Device (SDC3)
+{
+  Name (_HID, "BRCM2711")
+  Name (_CID, "PNP0D40")
+  Name (_UID, 0x1)
+  Name (_CCA, 0x0)
+  Name (_S1D, 0x1)
+  Name (_S2D, 0x1)
+  Name (_S3D, 0x1)
+  Name (_S4D, 0x1)
+  Method (_STA)
+  {
+    Return(0xf)
+  }
+  Name (RBUF, ResourceTemplate ()
+  {
+    MEMORY32FIXED (ReadWrite, 0, MMCHS2_LENGTH, RMEM)
+	Interrupt (ResourceConsumer, Level, ActiveHigh, Shared) { BCM2836_MMCHS1_INTERRUPT }
+  })
+  Method (_CRS, 0x0, Serialized)
+  {
+    MEMORY32SETBASE (RBUF, RMEM, RBAS, MMCHS2_OFFSET)
+    Return (^RBUF)
+  }
+
+  // forceably limit to 1G
+  Name (_DMA, ResourceTemplate() {
+    QWordMemory (ResourceConsumer,
+      ,
+      MinFixed,
+      MaxFixed,
+      NonCacheable,
+      ReadWrite,
+      0x0,
+      0x0,        // MIN
+      0x3fffffff, // MAX
+      0x0,        // TRA
+      0x40000000, // LEN
+      ,
+      ,
+    )
+  })
+
+
+  Name (_DSD, Package () {
+    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+    Package () {
+//      Package () { "sdhci-caps", 0x0000a52545ee6432 },
+		// Kill ADMA2 support for now
+      Package () { "sdhci-caps-mask", 0x0000000000080000 },
+    }
+  })
+
+  //
+  // A child device that represents the
+  // sd card, which is marked as non-removable.
+  //
+  Device (SDMM)
+  {
+    Method (_ADR)
+    {
+      Return (0)
+    }
+    Method (_RMV) // Is removable
+    {
+      Return (0) // 0 - fixed
+    }
+  }
+}
+
 
 
 // Broadcom SDHost 2.0 SD Host Controller
