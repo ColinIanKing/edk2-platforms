@@ -16,6 +16,7 @@ STATIC CARD_DETECT_STATE mCardDetectState = CardDetectRequired;
 UINT32 LastExecutedCommand = (UINT32) -1;
 
 STATIC RASPBERRY_PI_FIRMWARE_PROTOCOL *mFwProtocol;
+STATIC UINTN MMCHS_BASE;
 
 /**
    These SD commands are optional, according to the SD Spec
@@ -764,8 +765,11 @@ MMCInitialize (
   DEBUG ((DEBUG_MMCHOST_SD, "ArasanMMCHost: MMCInitialize()\n"));
 
   if (!PcdGet32 (PcdSdIsArasan)) {
-    DEBUG ((DEBUG_INFO, "SD is not routed to Arasan\n"));
-    return EFI_REQUEST_UNLOAD_IMAGE;
+    DEBUG ((DEBUG_INFO, "SD is routed to emmc2!\n"));
+    MMCHS_BASE = MMCHS2_BASE;
+  } else {
+    DEBUG ((DEBUG_INFO, "SD is routed to Arasan!\n"));
+    MMCHS_BASE = MMCHS1_BASE;
   }
 
   Status = gBS->LocateProtocol (&gRaspberryPiFirmwareProtocolGuid, NULL,
