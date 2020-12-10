@@ -35,6 +35,7 @@
   Spcr.aslc
   Pptt.aslc
   SsdtThermal.asl
+  Emmc.asl
 
 [Packages]
   ArmPkg/ArmPkg.dec
