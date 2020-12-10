@@ -46,7 +46,7 @@ STATIC RPI4_IO_REMAPPING_STRUCTURE Iort = {
       0x0,                                          // AllocationHints
       0x0,                                          // Reserved
       0x0,                                          // MemoryAccessFlags
-      31,                                           // AddressSizeLimit
+      30,                                           // AddressSizeLimit
     }, {
       "\\_SB_.SCB0.XHC0"                            // ObjectName
     }
