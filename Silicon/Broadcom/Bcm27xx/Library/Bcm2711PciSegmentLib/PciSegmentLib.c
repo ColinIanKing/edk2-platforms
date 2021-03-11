@@ -78,6 +78,7 @@ PciSegmentLibGetConfigBase (
   UINT64        Base;
   UINT64        Offset;
   UINT32        Dev;
+  UINT32        Bus;
 
   Base = PCIE_REG_BASE;
   Offset = Address & 0xFFF;         /* Pick off the 4k register offset */
@@ -89,17 +90,16 @@ PciSegmentLibGetConfigBase (
     Base += PCIE_EXT_CFG_DATA;
     if (mPciSegmentLastAccess != Address) {
       Dev = EFI_PCI_ADDR_DEV (Address);
+      Bus = EFI_PCI_ADDR_DEV (Address);
       /*
-       * Scan things out directly rather than translating the "bus" to a device, etc..
-       * only we need to limit each bus to a single device.
+       * There can only be a single device on bus 1 (downstream of root).
+       * Subsequent busses (behind a PCIe switch) could have more.
        */
-      if (Dev < 1) {
-          MmioWrite32 (PCIE_REG_BASE + PCIE_EXT_CFG_INDEX, Address);
-          mPciSegmentLastAccess = Address;
-      } else {
-          mPciSegmentLastAccess = 0;
+      if (Dev > 0 && (Bus == 1 || Bus == 0)) {
           return 0xFFFFFFFF;
       }
+      MmioWrite32 (PCIE_REG_BASE + PCIE_EXT_CFG_INDEX, Address);
+      mPciSegmentLastAccess = Address;
     }
   }
   return Base + Offset;
