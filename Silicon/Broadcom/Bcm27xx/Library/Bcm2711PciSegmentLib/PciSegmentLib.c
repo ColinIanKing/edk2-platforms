@@ -79,6 +79,8 @@ PciSegmentLibGetConfigBase (
   UINT64        Offset;
   UINT32        Dev;
   UINT32        Bus;
+  UINT32        Fun;
+  UINT32        Data;
 
   Base = PCIE_REG_BASE;
   Offset = Address & 0xFFF;         /* Pick off the 4k register offset */
@@ -86,18 +88,37 @@ PciSegmentLibGetConfigBase (
 
   /* The root port is at the base of the PCIe register space */
   if (Address != 0) {
+
     /* The current device is at CFG_DATA */
     Base += PCIE_EXT_CFG_DATA;
     if (mPciSegmentLastAccess != Address) {
       Dev = EFI_PCI_ADDR_DEV (Address);
-      Bus = EFI_PCI_ADDR_DEV (Address);
+      Bus = EFI_PCI_ADDR_BUS (Address);
+      Fun = EFI_PCI_ADDR_FUN (Address);
+
+	  DEBUG ((DEBUG_ERROR, "PciHostBridge: Probe B=%d D=%d F=%d\n", Bus, Dev, Fun));
+	  
       /*
        * There can only be a single device on bus 1 (downstream of root).
        * Subsequent busses (behind a PCIe switch) could have more.
        */
-      if (Dev > 0 && (Bus == 1 || Bus == 0)) {
+	  if (Dev > 0 && (Bus == 0)) {
+		  DEBUG ((DEBUG_ERROR, "PCIe skip 0\n"));
           return 0xFFFFFFFF;
       }
+
+	  // disable access if link down
+	  Data = MmioRead32 (PCIE_REG_BASE + PCIE_MISC_PCIE_STATUS);
+	  if ((Data & 0x30) != 0x30) {
+		  DEBUG ((DEBUG_ERROR, "PCIe link not ready (status=%x)\n", Data));
+		  return 0xFFFFFFFF;
+	  }
+
+	  if (Dev > 0 && (Bus == 1)) {
+		  DEBUG ((DEBUG_ERROR, "PCIe skip 1\n"));
+          return 0xFFFFFFFF;
+      }
+
       MmioWrite32 (PCIE_REG_BASE + PCIE_EXT_CFG_INDEX, Address);
       mPciSegmentLastAccess = Address;
     }
