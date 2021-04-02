@@ -206,7 +206,7 @@ Bcm2711PciHostBridgeLibConstructor (
 
   if ((Data & 0x30) != 0x30) {
     DEBUG ((DEBUG_ERROR, "PCIe link not ready (status=%x)\n", Data));
-    return EFI_DEVICE_ERROR;
+//    return EFI_DEVICE_ERROR;
   }
 
   if ((Data & 0x80) != 0x80) {
