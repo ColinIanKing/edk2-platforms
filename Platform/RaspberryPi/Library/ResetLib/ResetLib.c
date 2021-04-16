@@ -19,10 +19,64 @@
 #include <Library/TimerLib.h>
 #include <Library/EfiResetSystemLib.h>
 #include <Library/ArmSmcLib.h>
+#include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiLib.h>
 #include <Library/UefiRuntimeLib.h>
 
 #include <IndustryStandard/ArmStdSmc.h>
+
+
+/**
+  Disconnect everything.
+
+  @retval EFI_SUCCESS     The operation was successful.
+**/
+EFI_STATUS
+DisconnectAll(
+  VOID
+  )
+{
+  //
+  // Stolen from UEFI 2.3 spec (May 2009 version)
+  // Pages 171/172
+  // Removed gBS local definition
+  //
+
+  //
+  // Disconnect All Handles Example
+  // The following example recusively disconnects all drivers from all
+  // controllers in a platform.
+  //
+  EFI_STATUS Status;
+  UINTN HandleCount;
+  EFI_HANDLE *HandleBuffer;
+  UINTN HandleIndex;
+  //
+  // Retrieve the list of all handles from the handle database
+  //
+  Status = gBS->LocateHandleBuffer (
+    AllHandles,
+    NULL,
+    NULL,
+    &HandleCount,
+    &HandleBuffer
+   );
+  if (!EFI_ERROR (Status)) {
+    for (HandleIndex = 0; HandleIndex < HandleCount; HandleIndex++) {
+      Status = gBS->DisconnectController (
+        HandleBuffer[HandleIndex],
+        NULL,
+        NULL
+       );
+    }
+    gBS->FreePool(HandleBuffer);
+    //
+    // end of stealing
+    //
+  }
+  return (EFI_SUCCESS);
+}
+
 
 /**
   Resets the entire platform.
@@ -57,6 +111,7 @@ LibResetSystem (
     if (Delay != 0) {
       DEBUG ((DEBUG_INFO, "Platform will be reset in %d.%d seconds...\n",
               Delay / 1000000, (Delay % 1000000) / 100000));
+	  DisconnectAll ();
       MicroSecondDelay (Delay);
     }
   }
