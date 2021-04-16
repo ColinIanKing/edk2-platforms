@@ -505,7 +505,7 @@ ApplyVariables (
 
     Status = gDS->AddMemorySpace (EfiGcdMemoryTypeSystemMemory, 3UL * BASE_1GB,
                     SystemMemorySizeBelow4GB - (3UL * SIZE_1GB),
-                    EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB);
+                    EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB);
     ASSERT_EFI_ERROR (Status);
     Status = gDS->SetMemorySpaceAttributes (3UL * BASE_1GB,
                     SystemMemorySizeBelow4GB - (3UL * SIZE_1GB), EFI_MEMORY_WB);
@@ -517,7 +517,7 @@ ApplyVariables (
       //
       Status = gDS->AddMemorySpace (EfiGcdMemoryTypeSystemMemory, 4UL * BASE_1GB,
                       SystemMemorySize - (4UL * SIZE_1GB),
-                      EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB);
+                      EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB);
       ASSERT_EFI_ERROR (Status);
       Status = gDS->SetMemorySpaceAttributes (4UL * BASE_1GB,
                       SystemMemorySize - (4UL * SIZE_1GB), EFI_MEMORY_WB);
