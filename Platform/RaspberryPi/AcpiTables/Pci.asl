@@ -122,6 +122,15 @@ DefinitionBlock (__FILE__, "SSDT", 5, "RPIFDN", "RPI4PCIE", 2)
         Name(_BBN, Zero) // PCI Base Bus Number
         Name(_CCA, 0)    // mark the PCI noncoherent
 
+        Name (_DSD, Package () {
+          ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+              Package () { "linux,pcie-quirk", "bcm2711" },
+              Package () { "linux,pcie-nomsi", 1 },
+            }
+        })
+
+
         // Root Complex 0
         Device (RP0) {
          Name(_ADR, 0xF0000000)    // Dev 0, Func 0
@@ -175,6 +184,20 @@ DefinitionBlock (__FILE__, "SSDT", 5, "RPIFDN", "RPI4PCIE", 2)
               2                               // SANITIZED_PCIE_MMIO_LEN + 1
               ,,,MMI1,,TypeTranslation
             )
+
+            QWordMemory ( // Root port registers, not to be used if SMCCC is utilized
+              ResourceConsumer, ,
+              MinFixed, MaxFixed,
+              NonCacheable, ReadWrite,        // cacheable? is that right?
+              0x00000000,                     // Granularity
+              0xFD500000,                     // Root port begin
+              0xFD509FFF,                     // Root port end
+              0x00000000,                     // no translation
+              0x0000A000,                     // size
+              ,,
+            )
+
+
           }) // Name(RBUF)
 
           // Work around ASL's inability to add in a resource definition
